@@ -22,7 +22,7 @@ def terraclimate_fetch_all(points, num_years):
     
     all_data = []
     
-    for var in tqdm(VARS, desc="Downloading variables"):
+    for var in VARS:
         # Fetch remote dataset
         base_url = f'http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_terraclimate_{var}_1958_CurrentYear_GLOBE.nc'
         error = True
@@ -41,7 +41,7 @@ def terraclimate_fetch_all(points, num_years):
                 time_dates = [datetime(1900, 1, 1) + timedelta(days=t) for t in time]
 
                 # Loop through all points and fetch data
-                for point in points:
+                for point in tqdm(points, desc="Downloading point data"):
                     _, lat_point, lon_point, event_year = point
                     start_year = event_year - num_years
 
