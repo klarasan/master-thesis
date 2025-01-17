@@ -11,7 +11,6 @@ def generate_seasonality_fig():
     thistle = (0.9,0.75,0.9,1)
     plum = (0.5, 0, 0.5, 1)
     
-
     df = pd.read_csv('data/complete_dataset_12_years.csv', on_bad_lines='skip')
     north = df[(df['Latitude'] >= 38) & (df['label'] == 1)]
     mid_north = df[(df['Latitude'] >= 0) & (df['Latitude'] < 38) & (df['label'] == 1)]
@@ -45,8 +44,8 @@ def generate_seasonality_fig():
     axs[0].plot(range(1,37), s_tmax, label="southern most points", color=plum)
     axs[0].legend(loc='lower left')
     axs[0].set_ylabel('Temperature (degrees Celsius)')
-    #axs[0].set_xlabel('Months')
-    #axs[0].set_title("Max temperature")
+    axs[0].set_xlabel('Months')
+    axs[0].set_title("Max temperature")
 
     axs[1].plot(range(1,37), n_srad, label="northern most points", color=orange)
     axs[1].plot(range(1,37), mn_srad, label="mid-northern most points", color=coral)
@@ -54,8 +53,8 @@ def generate_seasonality_fig():
     axs[1].plot(range(1,37), s_srad, label="southern most points", color=plum)
     axs[1].legend(loc='lower left')
     axs[1].set_ylabel('Sun radiation (W/m2)')
-    #axs[1].set_xlabel('Months')
-    #axs[1].set_title("Sun exposure")
+    axs[1].set_xlabel('Months')
+    axs[1].set_title("Sun exposure")
 
     axs[2].plot(range(1,37), n_ppt, label="northern most points", color=orange)
     axs[2].plot(range(1,37), mn_ppt, label="mid-northern most points", color=coral)
@@ -63,11 +62,11 @@ def generate_seasonality_fig():
     axs[2].plot(range(1,37), s_ppt, label="southern most points", color=plum)
     axs[2].legend(loc='lower left')
     axs[2].set_ylabel('Precipitation (mm)')
-    #axs[2].set_xlabel('Months')
-    #axs[2].set_title("Rain")
+    axs[2].set_xlabel('Months')
+    axs[2].set_title("Rain")
 
     fig.suptitle("Seasonality over 3 years", fontsize=13)
-    #plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave space for the main title
+    fig.tight_layout()  # Leave space for the main title
     plt.show()
 
     return
@@ -103,6 +102,72 @@ def generate_global_warming_fig():
 
     fig.suptitle("Global trends in dataset", fontsize=16)
     plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave space for the main title
+    plt.show()
+
+    return
+
+def generate_stability_figs():
+    VARS = ['tmax', 'srad', 'ppt', 'def']
+    df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
+    pos_df = df[df['label'] == 1]
+    neg_df = df[df['label'] == 0]
+    years = range(-11, 1)
+
+    coral = (1,0.5,0.31,1)
+    plum = (0.5, 0, 0.5, 1)
+
+    pos_tmax_mean, pos_srad_mean, pos_ppt_mean, pos_def_mean = [], [], [], []
+    neg_tmax_mean, neg_srad_mean, neg_ppt_mean, neg_def_mean = [], [], [], []
+
+    for year in years:
+        pos_tmax_mean.append(pos_df[f'tmax_year{year}_mean'].mean())
+        neg_tmax_mean.append(neg_df[f'tmax_year{year}_mean'].mean())
+        pos_srad_mean.append(pos_df[f'srad_year{year}_mean'].mean())
+        neg_srad_mean.append(neg_df[f'srad_year{year}_mean'].mean())
+        pos_ppt_mean.append(pos_df[f'ppt_year{year}_mean'].mean())
+        neg_ppt_mean.append(neg_df[f'ppt_year{year}_mean'].mean())
+        pos_def_mean.append(pos_df[f'def_year{year}_mean'].mean())
+        neg_def_mean.append(neg_df[f'def_year{year}_mean'].mean())
+
+    fig, axs = plt.subplots(2, 2, figsize=(8.5, 7.5))
+
+    axs[0,0].plot(years, pos_tmax_mean, label="Positive samples", color=coral)
+    axs[0,0].plot(years, neg_tmax_mean, label="Negative samples", color=plum)
+    axs[0,0].set(ylim=(17, 22))
+    axs[0,0].set_ylabel('Temperature (degrees Celsius)')
+    axs[0,0].set_xlabel('Years before event')
+    axs[0,0].set_title("Average max temperature")
+    axs[0,0].grid(visible=True)
+    axs[0,0].legend(loc='lower left')
+
+    axs[0,1].plot(years, pos_srad_mean, label="Positive samples", color=coral)
+    axs[0,1].plot(years, neg_srad_mean, label="Negative samples", color=plum)
+    axs[0,1].set(ylim=(197, 205))
+    axs[0,1].set_ylabel('Solar radiation (W/m2)')
+    axs[0,1].set_xlabel('Years before event')
+    axs[0,1].set_title("Average sun radiation")
+    axs[0,1].grid(visible=True)
+    axs[0,1].legend(loc='lower left')
+
+    axs[1,0].plot(years, pos_ppt_mean, label="Positive samples", color=coral)
+    axs[1,0].plot(years, neg_ppt_mean, label="Negative samples", color=plum)
+    axs[1,0].set_ylabel('Precipitation (mm)')
+    axs[1,0].set_xlabel('Years before event')
+    axs[1,0].set_title("Average precipitation")
+    axs[1,0].grid(visible=True)
+    axs[1,0].legend(loc='lower left')
+
+    axs[1,1].plot(years, pos_def_mean, label="Positive samples", color=coral)
+    axs[1,1].plot(years, neg_def_mean, label="Negative samples", color=plum)
+    axs[1,1].set(ylim=(50, 67))
+    axs[1,1].set_ylabel('Water deficit (mm)')
+    axs[1,1].set_xlabel('Years before event')
+    axs[1,1].set_title("Average climate water deficit")
+    axs[1,1].grid(visible=True)
+    axs[1,1].legend(loc='lower left')
+
+    fig.suptitle("Stability in dataset", fontsize=16)
+    fig.tight_layout()
     plt.show()
 
     return
