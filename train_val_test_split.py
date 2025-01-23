@@ -6,20 +6,60 @@ import pandas as pd
 
 plt.rcParams['font.family'] = 'Times New Roman'
 
-def data_split():
+def datasplit70_15_15():
+    df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
+    train = df[df['Ref_ID'] < 125]
+    val = df[(df['Ref_ID'] >= 125) & (df['Ref_ID'] < 144)]
+    test = df[df['Ref_ID'] >= 144]
+
+    return train, val, test
+
+def datasplit80_10_10():
+    df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
+    train = df[df['Ref_ID'] < 137]
+    val = df[(df['Ref_ID'] >= 137) & (df['Ref_ID'] < 145)]
+    test = df[df['Ref_ID'] >= 145]
+
+    return train, val, test
+
+def monthly_datasplit70_15_15():
+    df = pd.read_csv('data/complete_dataset_12_years.csv', on_bad_lines='skip')
+    train = df[df['Ref_ID'] < 125]
+    val = df[(df['Ref_ID'] >= 125) & (df['Ref_ID'] < 144)]
+    test = df[df['Ref_ID'] >= 144]
+
+    return train, val, test
+
+def monthly_datasplit80_10_10():
+    df = pd.read_csv('data/complete_dataset_12_years.csv', on_bad_lines='skip')
+    train = df[df['Ref_ID'] < 137]
+    val = df[(df['Ref_ID'] >= 137) & (df['Ref_ID'] < 145)]
+    test = df[df['Ref_ID'] >= 145]
+
+    return train, val, test
+
+def data_pos_split():
     # Total: 1297
-    # Train idx 1-135: 999 samples, 77.0%
-    # Val idx 135-145: 194 samples, 15.0%
+    # Train idx 1-136: 1023 samples, 78.9%
+    # Val idx 137-144: 170 samples, 13.1%
     # Test idx 145-152: 104 samples, 8.0%
+
+    # Train idx 1-124: 883 samples, 68.1%
+    # Val idx 125-143: 185 samples, 14.3%
+    # Test idx 144-152: 229 samples, 17.7%
     df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
     pos_df = df[df['label'] == 1]
     ref_ids = np.zeros(153)
     for _, row in pos_df.iterrows():
         ref_ids[int(row['Ref_ID'])] += 1
 
-    train_df = pos_df[pos_df['Ref_ID'] < 135]
-    val_df = pos_df[(pos_df['Ref_ID'] >= 135) & (pos_df['Ref_ID'] < 145)]
-    test_df = pos_df[pos_df['Ref_ID'] >= 145]
+    print('All samples: ' + str(pos_df.shape[0]))
+    train_df = pos_df[pos_df['Ref_ID'] < 125]
+    print('Training samples: ' + str(train_df.shape[0]) + ' samples, ' + str(100.0*round(train_df.shape[0]/pos_df.shape[0], 3)) + '%')
+    val_df = pos_df[(pos_df['Ref_ID'] >= 125) & (pos_df['Ref_ID'] < 144)]
+    print('Validation samples: ' + str(val_df.shape[0]) + ' samples, ' + str(100.0*round(val_df.shape[0]/pos_df.shape[0], 3)) + '%')
+    test_df = pos_df[pos_df['Ref_ID'] >= 144]
+    print('Test samples: ' + str(test_df.shape[0]) + ' samples, ' + str(100.0*round(test_df.shape[0]/pos_df.shape[0], 3)) + '%')
 
     return train_df, val_df, test_df
 
@@ -106,6 +146,6 @@ def vis_geographic_split(train_df, val_df, test_df):
     return
 
 if __name__ == "__main__":
-    train_df, val_df, test_df = data_split()
-    #vis_yearly_split(train_df, val_df, test_df)
-    vis_geographic_split(train_df, val_df, test_df)
+    train_df, val_df, test_df = data_pos_split()
+    # vis_yearly_split(train_df, val_df, test_df)
+    # vis_geographic_split(train_df, val_df, test_df)
