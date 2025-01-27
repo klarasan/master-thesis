@@ -151,7 +151,7 @@ def vis_geographic_split(train_df, val_df, test_df):
     plt.show()
     return
 
-def vis_refID_spread():
+def vis_refID_spread(show_sample_distr=False):
     df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
     df = df[df['label'] == 1]
     ref_ids = np.zeros(153)
@@ -159,13 +159,14 @@ def vis_refID_spread():
         ref_ids[int(row['Ref_ID'])] += 1
     highestIDs = [76, 144, 92, 101]
 
-    # fig, ax = plt.subplots()
-    # ax.bar(range(0, 153), ref_ids, width=1, edgecolor="white", linewidth=0.7, color=plum)
-    # ax.set_xlabel('Reference ID')
-    # ax.set_ylabel('Number of samples')
-    # ax.set_title("Samples per reference ID")
-    # ax.set( xlim=(1, 155), ylim=(0, 240))
-    # plt.show()
+    if show_sample_distr:
+        fig, ax = plt.subplots()
+        ax.bar(range(0, 153), ref_ids, width=1, edgecolor="white", linewidth=0.7, color=plum)
+        ax.set_xlabel('Reference ID')
+        ax.set_ylabel('Number of samples')
+        ax.set_title("Samples per reference ID")
+        ax.set( xlim=(1, 155), ylim=(0, 240))
+        plt.show()
 
     df0 = df[df['Ref_ID']==highestIDs[0]]
     df1 = df[df['Ref_ID']==highestIDs[1]]
