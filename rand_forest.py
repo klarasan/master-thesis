@@ -94,9 +94,11 @@ def init_test(X_train, Y_train, X_val, Y_val):
     return
 
 if __name__ == "__main__":
-    train, val, _ = train_val_test_split.datasplit80_10_10()
-    x_train, y_train, x_val, y_val = extract_samples(train, val)
+    # train, val, _ = train_val_test_split.datasplit80_10_10()
+    # x_train, y_train, x_val, y_val = extract_samples(train, val)
     # init_test(x_train, y_train, x_val, y_val)
-    m_train, m_val, _ = train_val_test_split.monthly_datasplit70_15_15()
-    m_x_train, m_y_train, m_x_val, m_y_val = extract_samples(m_train, m_val)
-    monthly_test(m_x_train, m_y_train, m_x_val, m_y_val)
+    # m_train, m_val, _ = train_val_test_split.monthly_datasplit70_15_15()
+    # m_x_train, m_y_train, m_x_val, m_y_val = extract_samples(m_train, m_val)
+    # monthly_test(m_x_train, m_y_train, m_x_val, m_y_val)
+
+    leave_one_out()

@@ -5,6 +5,12 @@ import numpy as np
 import pandas as pd
 
 plt.rcParams['font.family'] = 'Times New Roman'
+coral = (1,0.5,0.31,0.7)
+orange = (1, 0.44, 0, 1)
+thistle = (0.9,0.75,0.9,1)
+plum = (0.5, 0, 0.5, 1)
+slate = (72/255,61/255,139/255, 1)
+colors = [coral, orange, thistle, plum, slate]
 
 def datasplit70_15_15():
     df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
@@ -145,7 +151,84 @@ def vis_geographic_split(train_df, val_df, test_df):
     plt.show()
     return
 
+def vis_refID_spread():
+    df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
+    df = df[df['label'] == 1]
+    ref_ids = np.zeros(153)
+    for _, row in df.iterrows():
+        ref_ids[int(row['Ref_ID'])] += 1
+    highestIDs = [76, 144, 92, 101]
+
+    # fig, ax = plt.subplots()
+    # ax.bar(range(0, 153), ref_ids, width=1, edgecolor="white", linewidth=0.7, color=plum)
+    # ax.set_xlabel('Reference ID')
+    # ax.set_ylabel('Number of samples')
+    # ax.set_title("Samples per reference ID")
+    # ax.set( xlim=(1, 155), ylim=(0, 240))
+    # plt.show()
+
+    df0 = df[df['Ref_ID']==highestIDs[0]]
+    df1 = df[df['Ref_ID']==highestIDs[1]]
+    df2 = df[df['Ref_ID']==highestIDs[2]]
+    df3 = df[df['Ref_ID']==highestIDs[3]]
+
+    lons0 = df0['Longitude']
+    lats0 = df0['Latitude']
+    lons1 = df1['Longitude']
+    lats1 = df1['Latitude']
+    lons2 = df2['Longitude']
+    lats2 = df2['Latitude']
+    lons3 = df3['Longitude']
+    lats3 = df3['Latitude']
+
+    fig, ax = plt.subplots(2, 2, figsize=(8, 7), subplot_kw={'projection': ccrs.PlateCarree()})
+    ax[0,0].set_extent([114.5, 117.5, -34, -31], crs=ccrs.PlateCarree()) 
+    
+    ax[0,0].add_feature(cfeature.LAND, edgecolor='black')
+    ax[0,0].add_feature(cfeature.COASTLINE)
+    ax[0,0].add_feature(cfeature.LAKES, alpha=0.5)
+    ax[0,0].add_feature(cfeature.RIVERS)
+
+    for lon, lat in zip(lons0, lats0):
+        ax[0,0].plot(lon, lat, marker='o', color=colors[0], markersize=2, transform=ccrs.PlateCarree())
+    ax[0,0].set_title('Ref ID 76')
+
+    ax[0,1].set_extent([30, 33, -26, -23], crs=ccrs.PlateCarree()) 
+    
+    ax[0,1].add_feature(cfeature.LAND, edgecolor='black')
+    ax[0,1].add_feature(cfeature.COASTLINE)
+    ax[0,1].add_feature(cfeature.LAKES, alpha=0.5)
+    ax[0,1].add_feature(cfeature.RIVERS)
+    for lon, lat in zip(lons1, lats1):
+        ax[0,1].plot(lon, lat, marker='o', color=colors[2], markersize=2, transform=ccrs.PlateCarree())
+    ax[0,1].set_title('Ref ID 144')
+
+    ax[1,0].set_extent([-113, -110, 33, 36], crs=ccrs.PlateCarree()) 
+    
+    ax[1,0].add_feature(cfeature.LAND, edgecolor='black')
+    ax[1,0].add_feature(cfeature.COASTLINE)
+    ax[1,0].add_feature(cfeature.LAKES, alpha=0.5)
+    ax[1,0].add_feature(cfeature.RIVERS)
+    for lon, lat in zip(lons2, lats2):
+        ax[1,0].plot(lon, lat, marker='o', color=colors[3], markersize=2, transform=ccrs.PlateCarree())
+    ax[1,0].set_title('Ref ID 92')
+
+    ax[1,1].set_extent([-119.9, -119.7, 33.9, 34.1], crs=ccrs.PlateCarree()) 
+    
+    ax[1,1].add_feature(cfeature.LAND, edgecolor='black')
+    ax[1,1].add_feature(cfeature.COASTLINE)
+    ax[1,1].add_feature(cfeature.LAKES, alpha=0.5)
+    ax[1,1].add_feature(cfeature.RIVERS)
+    for lon, lat in zip(lons3, lats3):
+        ax[1,1].plot(lon, lat, marker='o', color=colors[4], markersize=2, transform=ccrs.PlateCarree())
+    ax[1,1].set_title('Ref ID 101')
+
+    fig.suptitle("Geographical distribution of biggest data groups", fontsize=16)
+    fig.tight_layout()
+    plt.show()
+
 if __name__ == "__main__":
-    train_df, val_df, test_df = data_pos_split()
+    # train_df, val_df, test_df = data_pos_split()
     # vis_yearly_split(train_df, val_df, test_df)
     # vis_geographic_split(train_df, val_df, test_df)
+    vis_refID_spread()
