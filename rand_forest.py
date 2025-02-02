@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.model_selection import KFold, cross_val_score
 import train_val_test_split
 import numpy as np
 import matplotlib.pyplot as plt
@@ -103,11 +104,10 @@ def drop_columns(start, end):
     return columns_to_drop
 
 def leave_one_out():
-    all_data_df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
+    all_data_df = pd.read_csv('data/avg_std_12_years_closest_gridpoint.csv', on_bad_lines='skip')
     i = 0
-    n_classifiers = 12
 
-    for max_features in ['sqrt', 'log2', 5, 10]:
+    for n_classifiers in range(3, 18, 3):
         val_accuracies = []
         for num_years in range(2, 13, 2):
             dropped_columns = drop_columns(-11, 1-num_years)
@@ -129,7 +129,7 @@ def leave_one_out():
                     if y_test.shape[0] != 0:
                         test_value.extend(y_test.values)
                         x_train, y_train = shuffle(x_train, y_train, random_state=42)
-                        rf_model = RandomForestClassifier(n_estimators=n_classifiers, max_features=max_features, random_state=42)
+                        rf_model = RandomForestClassifier(n_estimators=n_classifiers, random_state=42)
                         rf_model.fit(x_train, y_train)
                         
                         val_pred = rf_model.predict(x_test)
@@ -139,8 +139,8 @@ def leave_one_out():
             val_acc = round(val_acc * 100.0, 2)
             print(val_acc)
             val_accuracies.append(val_acc)
-        print(f'Finished training with max features {max_features}')
-        plt.plot(range(2, 13, 2), val_accuracies, label=f'Max features: {max_features}', color=colors[i])
+        print(f'Finished training with {n_classifiers} classifiers')
+        plt.plot(range(2, 13, 2), val_accuracies, label=f'{n_classifiers} classifiers', color=colors[i])
         i += 1
     
     plt.xlabel('Number of input years')
@@ -153,6 +153,31 @@ def leave_one_out():
 
     return
 
+def test_interpolate():
+    all_data_df = pd.read_csv('data/avg_std_12_years_closest_gridpoint.csv', on_bad_lines='skip')
+    columns_to_drop = ['Ref_ID', 'Year', 'Latitude', 'Longitude']
+    for var in VARS:
+        for year in range(-11, 1):
+            columns_to_drop.append(f'{var}_year{year}_std')
+        for year_offset in range(-11, -3):
+            columns_to_drop.append(f'{var}_year{year_offset}_mean')
+    df = all_data_df.drop(columns=columns_to_drop, axis=1)
+    x = df.drop(columns=['label'])
+    y = df['label']
+    
+    classifier = RandomForestClassifier(n_estimators=800, random_state=42)
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
+    cv_scores = cross_val_score(classifier, x, y, cv=kf, scoring='accuracy')
+    
+    mean_cv_score = np.mean(cv_scores)
+    std_cv_score = np.std(cv_scores)
+    
+    print(f"K-Fold Cross Validation (k={5}):")
+    print(f"Accuracy per fold: {cv_scores}")
+    print(f"Mean Accuracy: {mean_cv_score:.4f}")
+    print(f"Standard Deviation: {std_cv_score:.4f}")
+    
+
 if __name__ == "__main__":
     # train, val, _ = train_val_test_split.datasplit80_10_10()
     # x_train, y_train, x_val, y_val = extract_samples(train, val)
@@ -161,3 +186,4 @@ if __name__ == "__main__":
     # m_x_train, m_y_train, m_x_val, m_y_val = extract_samples(m_train, m_val)
     # monthly_test(m_x_train, m_y_train, m_x_val, m_y_val)
     leave_one_out()
+    # test_interpolate()
