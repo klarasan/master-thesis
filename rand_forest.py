@@ -93,6 +93,66 @@ def init_test(X_train, Y_train, X_val, Y_val):
     plt.show()
     return
 
+def drop_columns(start, end):
+    columns_to_drop = ['Year', 'Latitude', 'Longitude']
+    for var in VARS:
+        for year in range(-11, 1):
+            columns_to_drop.append(f'{var}_year{year}_std')
+        for year_offset in range(start, end):
+            columns_to_drop.append(f'{var}_year{year_offset}_mean')
+    return columns_to_drop
+
+def leave_one_out():
+    all_data_df = pd.read_csv('data/dataset_avg_std_12_years.csv', on_bad_lines='skip')
+    i = 0
+    n_classifiers = 12
+
+    for max_features in ['sqrt', 'log2', 5, 10]:
+        val_accuracies = []
+        for num_years in range(2, 13, 2):
+            dropped_columns = drop_columns(-11, 1-num_years)
+            df = all_data_df.drop(columns=dropped_columns, axis=1)
+
+            test_pred = []
+            test_value = []
+
+            for label in reversed(range(0,2)):
+                for id in range(0, 153):
+                    x_train = df[(df['label'] != label) | (df['Ref_ID'] != id)]
+                    y_train = x_train['label']
+                    x_train = x_train.drop(columns=['label', 'Ref_ID'], axis=1)
+    
+                    x_test = df[(df['label'] == label) & (df['Ref_ID'] == id)]
+                    y_test = x_test['label']
+                    x_test = x_test.drop(columns=['label', 'Ref_ID'], axis=1)
+
+                    if y_test.shape[0] != 0:
+                        test_value.extend(y_test.values)
+                        x_train, y_train = shuffle(x_train, y_train, random_state=42)
+                        rf_model = RandomForestClassifier(n_estimators=n_classifiers, max_features=max_features, random_state=42)
+                        rf_model.fit(x_train, y_train)
+                        
+                        val_pred = rf_model.predict(x_test)
+                        test_pred.extend(val_pred)
+
+            val_acc = accuracy_score(test_value, test_pred)
+            val_acc = round(val_acc * 100.0, 2)
+            print(val_acc)
+            val_accuracies.append(val_acc)
+        print(f'Finished training with max features {max_features}')
+        plt.plot(range(2, 13, 2), val_accuracies, label=f'Max features: {max_features}', color=colors[i])
+        i += 1
+    
+    plt.xlabel('Number of input years')
+    plt.ylabel('Test accuracy')
+    plt.ylim(0, 100)
+    plt.title('Random forest leave one out')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    return
+
 if __name__ == "__main__":
     # train, val, _ = train_val_test_split.datasplit80_10_10()
     # x_train, y_train, x_val, y_val = extract_samples(train, val)
@@ -100,5 +160,4 @@ if __name__ == "__main__":
     # m_train, m_val, _ = train_val_test_split.monthly_datasplit70_15_15()
     # m_x_train, m_y_train, m_x_val, m_y_val = extract_samples(m_train, m_val)
     # monthly_test(m_x_train, m_y_train, m_x_val, m_y_val)
-
     leave_one_out()
