@@ -4,7 +4,7 @@ import pandas as pd
 VARS = ['aet', 'def', 'pet', 'ppt', 'q', 'soil', 'srad', 'swe', 'tmax', 'tmin', 'vap', 'ws', 'vpd', 'PDSI']
 
 def aggregate_data(num_years):
-    all_data_df = pd.read_csv('data/complete_dataset_12_years_bilinear_interp.csv', on_bad_lines='skip')
+    all_data_df = pd.read_csv('data/12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
     aggr_df = all_data_df[['Ref_ID', 'Year', 'Latitude', 'Longitude']]
     
     for var in VARS:
@@ -16,7 +16,7 @@ def aggregate_data(num_years):
             aggr_df[f'{var}_year{year}_std'] = temp.std(axis=1)
     
     aggr_df['label'] = all_data_df['label']
-    csv_path = f'dataset_avg_std_{num_years}_years_bilinear_interp.csv'
+    csv_path = f'avg_std_{num_years}_years_bilinear_interp_w_outliers.csv'
     aggr_df.to_csv(csv_path, index=False)
 
     return

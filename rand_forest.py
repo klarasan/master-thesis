@@ -153,16 +153,13 @@ def leave_one_out():
 
     return
 
-def test_interpolate():
-    all_data_df = pd.read_csv('data/avg_std_12_years_closest_gridpoint.csv', on_bad_lines='skip')
-    columns_to_drop = ['Ref_ID', 'Year', 'Latitude', 'Longitude']
+def kfold_test():
+    df = pd.read_csv('data/avg_std_12_years_closest_gridpoint.csv', on_bad_lines='skip')
+    cols = []
     for var in VARS:
-        for year in range(-11, 1):
-            columns_to_drop.append(f'{var}_year{year}_std')
-        for year_offset in range(-11, -3):
-            columns_to_drop.append(f'{var}_year{year_offset}_mean')
-    df = all_data_df.drop(columns=columns_to_drop, axis=1)
-    x = df.drop(columns=['label'])
+        for year in range(-3, 1):
+            cols.append(f'{var}_year{year}_mean')
+    x = df[cols]
     y = df['label']
     
     classifier = RandomForestClassifier(n_estimators=800, random_state=42)
@@ -176,8 +173,123 @@ def test_interpolate():
     print(f"Accuracy per fold: {cv_scores}")
     print(f"Mean Accuracy: {mean_cv_score:.4f}")
     print(f"Standard Deviation: {std_cv_score:.4f}")
-    
 
+def feat_imp():
+    # vars14 = ['aet', 'def', 'pet', 'ppt', 'q', 'soil', 'srad', 'swe', 'tmax', 'tmin', 'vap', 'ws', 'vpd', 'PDSI']
+    # vars10 = ['aet', 'def', 'ppt', 'q', 'soil', 'srad', 'tmax', 'vap', 'vpd', 'PDSI']
+    # vars8 = ['tmax', 'vpd', 'def', 'soil', 'ppt', 'PDSI', 'srad', 'q']
+    # vars6 = ['tmax', 'vpd', 'def', 'soil', 'ppt', 'PDSI']
+    # vars3 = ['srad', 'def', 'PDSI']
+    vars1 = ['PDSI']
+    vars2 = ['PDSI', 'def']
+    vars3 = ['PDSI', 'def', 'srad']
+    vars5 = ['PDSI', 'def', 'srad', 'vpd', 'soil']
+    vars7 = ['PDSI', 'def', 'srad', 'vpd', 'soil', 'tmax', 'ppt']
+
+    vars = [vars1, vars2, vars3, vars5, vars7]
+    df = pd.read_csv('data/avg_std_12_years_closest_gridpoint.csv', on_bad_lines='skip')
+
+    for i in range(0, 5):
+        val_accuracies = []
+        for num_years in range(1, 13):
+            cols = ['Ref_ID', 'label']
+            for var in vars[i]:
+                for year in range(1-num_years, 1):
+                    cols.append(f'{var}_year{year}_mean')
+            x = df[cols]
+
+            preds = []
+            values = []
+
+            for label in reversed(range(0,2)):
+                for id in range(0, 153):
+                    x_train = x[(x['label'] != label) | (x['Ref_ID'] != id)]
+                    y_train = x_train['label']
+                    x_train = x_train.drop(columns=['label', 'Ref_ID'], axis=1)
+
+                    x_test = x[(x['label'] == label) & (x['Ref_ID'] == id)]
+                    y_test = x_test['label']
+                    x_test = x_test.drop(columns=['label', 'Ref_ID'], axis=1)
+
+                    if y_test.shape[0] != 0:
+                        values.extend(y_test.values)
+                        x_train, y_train = shuffle(x_train, y_train, random_state=42)
+                        rf_model = RandomForestClassifier(n_estimators=12, random_state=42)
+                        rf_model.fit(x_train, y_train)
+                        
+                        pred = rf_model.predict(x_test)
+                        preds.extend(pred)
+    
+            val_acc = accuracy_score(values, preds)
+            val_acc = round(val_acc * 100.0, 2)
+            print(val_acc)
+            val_accuracies.append(val_acc)
+        print(f'Finished training with {len(vars[i])} variables')
+        plt.plot(range(1, 13), val_accuracies, label=f'{len(vars[i])} variables', color=colors[i])
+    
+    plt.xlabel('Number of input years')
+    plt.ylabel('Test accuracy')
+    plt.ylim(0, 100)
+    plt.title('Random forest leave one out')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    return
+
+def dataset_test():
+    df_closest = pd.read_csv('data/avg_std_12_years_closest_gridpoint.csv', on_bad_lines='skip')
+    df_interp = pd.read_csv('data/avg_std_12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
+    dfs = [df_closest, df_interp]
+    vars = ['tmax', 'vpd', 'def', 'soil', 'ppt', 'PDSI']
+
+    for i in range(0, 2):
+        val_accuracies = []
+        for num_years in range(1, 13):
+            cols = ['Ref_ID', 'label']
+            for var in vars:
+                for year in range(1-num_years, 1):
+                    cols.append(f'{var}_year{year}_mean')
+            x = dfs[i][cols]
+
+            preds = []
+            values = []
+
+            for label in reversed(range(0,2)):
+                for id in range(0, 153):
+                    x_train = x[(x['label'] != label) | (x['Ref_ID'] != id)]
+                    y_train = x_train['label']
+                    x_train = x_train.drop(columns=['label', 'Ref_ID'], axis=1)
+
+                    x_test = x[(x['label'] == label) & (x['Ref_ID'] == id)]
+                    y_test = x_test['label']
+                    x_test = x_test.drop(columns=['label', 'Ref_ID'], axis=1)
+
+                    if y_test.shape[0] != 0:
+                        values.extend(y_test.values)
+                        x_train, y_train = shuffle(x_train, y_train, random_state=42)
+                        rf_model = RandomForestClassifier(n_estimators=12, random_state=42)
+                        rf_model.fit(x_train, y_train)
+                        
+                        pred = rf_model.predict(x_test)
+                        preds.extend(pred)
+    
+            val_acc = accuracy_score(values, preds)
+            val_acc = round(val_acc * 100.0, 2)
+            print(val_acc)
+            val_accuracies.append(val_acc)
+        print(f'Finished training round {i+1}')
+        label = 'Closest grid value' if i == 0 else 'Interpolated grid value'
+        plt.plot(range(1, 13), val_accuracies, label=label, color=colors[i])
+    
+    plt.xlabel('Number of input years')
+    plt.ylabel('Test accuracy')
+    plt.ylim(0, 100)
+    plt.title('Random forest leave one out')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    return
+    
 if __name__ == "__main__":
     # train, val, _ = train_val_test_split.datasplit80_10_10()
     # x_train, y_train, x_val, y_val = extract_samples(train, val)
@@ -185,5 +297,7 @@ if __name__ == "__main__":
     # m_train, m_val, _ = train_val_test_split.monthly_datasplit70_15_15()
     # m_x_train, m_y_train, m_x_val, m_y_val = extract_samples(m_train, m_val)
     # monthly_test(m_x_train, m_y_train, m_x_val, m_y_val)
-    leave_one_out()
-    # test_interpolate()
+    # leave_one_out()
+    # kfold_test()
+    # feat_imp()
+    dataset_test()
