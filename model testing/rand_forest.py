@@ -1,6 +1,5 @@
 import pandas as pd
 from sklearn.model_selection import KFold, cross_val_score
-import train_val_test_split
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
@@ -104,7 +103,7 @@ def drop_columns(start, end):
     return columns_to_drop
 
 def leave_one_out():
-    all_data_df = pd.read_csv('data/avg_std_12_years_closest_gridpoint.csv', on_bad_lines='skip')
+    all_data_df = pd.read_csv('data/avg_std_12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
     i = 0
 
     for n_classifiers in range(3, 18, 3):
@@ -180,14 +179,20 @@ def feat_imp():
     # vars8 = ['tmax', 'vpd', 'def', 'soil', 'ppt', 'PDSI', 'srad', 'q']
     # vars6 = ['tmax', 'vpd', 'def', 'soil', 'ppt', 'PDSI']
     # vars3 = ['srad', 'def', 'PDSI']
-    vars1 = ['PDSI']
-    vars2 = ['PDSI', 'def']
-    vars3 = ['PDSI', 'def', 'srad']
-    vars5 = ['PDSI', 'def', 'srad', 'vpd', 'soil']
-    vars7 = ['PDSI', 'def', 'srad', 'vpd', 'soil', 'tmax', 'ppt']
+    # vars1 = ['PDSI']
+    # vars2 = ['PDSI', 'def']
+    # vars3 = ['PDSI', 'def', 'srad']
+    # vars5 = ['PDSI', 'def', 'srad', 'vpd', 'soil']
+    # vars7 = ['PDSI', 'def', 'srad', 'vpd', 'soil', 'tmax', 'ppt']
+    labels = ['ppt + srad', 'ppt + tmax', 'def + srad', 'def + tmax', 'PDSI']
+    vars1 = ['ppt', 'srad']
+    vars2 = ['ppt', 'tmax']
+    vars3 = ['def', 'srad']
+    vars4 = ['def', 'tmax']
+    vars5 = ['PDSI']
 
-    vars = [vars1, vars2, vars3, vars5, vars7]
-    df = pd.read_csv('data/avg_std_12_years_closest_gridpoint.csv', on_bad_lines='skip')
+    vars = [vars1, vars2, vars3, vars4, vars5]
+    df = pd.read_csv('data/avg_std_12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
 
     for i in range(0, 5):
         val_accuracies = []
@@ -224,8 +229,8 @@ def feat_imp():
             val_acc = round(val_acc * 100.0, 2)
             print(val_acc)
             val_accuracies.append(val_acc)
-        print(f'Finished training with {len(vars[i])} variables')
-        plt.plot(range(1, 13), val_accuracies, label=f'{len(vars[i])} variables', color=colors[i])
+        print(f'Finished training round {i+1}')
+        plt.plot(range(1, 13), val_accuracies, label=labels[i], color=colors[i])
     
     plt.xlabel('Number of input years')
     plt.ylabel('Test accuracy')
@@ -299,5 +304,5 @@ if __name__ == "__main__":
     # monthly_test(m_x_train, m_y_train, m_x_val, m_y_val)
     # leave_one_out()
     # kfold_test()
-    # feat_imp()
-    dataset_test()
+    feat_imp()
+    # dataset_test()
