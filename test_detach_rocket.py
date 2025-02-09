@@ -188,6 +188,82 @@ def monthly_vs_yearly_test():
     plt.show()
     return
 
+def feat_imp():
+    vars14 = ['aet', 'def', 'pet', 'ppt', 'q', 'soil', 'srad', 'swe', 'tmax', 'tmin', 'vap', 'ws', 'vpd', 'PDSI']
+    vars10 = ['aet', 'def', 'ppt', 'q', 'soil', 'srad', 'tmax', 'vap', 'vpd', 'PDSI']
+    vars8 = ['tmax', 'vpd', 'def', 'soil', 'ppt', 'PDSI', 'srad', 'q']
+    vars6 = ['tmax', 'vpd', 'def', 'soil', 'ppt', 'PDSI']
+    vars3 = ['srad', 'def', 'PDSI']
+    vars_list = [vars14, vars10, vars8, vars6, vars3]
+
+    df = pd.read_csv('data/12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
+
+    for i in range(0, 5):
+        val_accuracies = []
+        vars = vars_list[i]
+        for num_years in range(2, 13, 2):
+            years = range(1-num_years, 1)
+            months = range(1, 13)
+            X = np.zeros((len(df), len(vars), len(years) * len(months)))  
+
+            # Populate X with values from df
+            for i, var in enumerate(vars):
+                for j, year in enumerate(years):
+                    for k, month in enumerate(months):
+                        col_name = f"{var}_year{year}_month{month}"
+                        time_idx = j * len(months) + k
+                        X[:, i, time_idx] = df[col_name].values
+
+            ref_ids = df["Ref_ID"].values
+            labels = df["label"].values 
+
+            preds = []
+            values = []
+
+            for label in reversed(range(0, 2)):
+                for id in range(0, 153):
+                    X_train_list, X_test_list, y_train_list, y_test_list = [], [], [], []
+
+                    # Boolean masks for selecting train/test samples
+                    train_mask = (labels != label) | (ref_ids != id)
+                    test_mask = (labels == label) & (ref_ids == id)
+
+                    X_train_list.append(X[train_mask])
+                    y_train_list.append(labels[train_mask])
+
+                    X_test_list.append(X[test_mask])
+                    y_test_list.append(labels[test_mask])
+
+                    # Convert lists to NumPy arrays
+                    X_train = np.concatenate(X_train_list, axis=0)
+                    y_train = np.concatenate(y_train_list, axis=0)
+
+                    X_test = np.concatenate(X_test_list, axis=0)
+                    y_test = np.concatenate(y_test_list, axis=0)
+
+                    if y_test.shape[0] > 0:
+                        print(f'Sample: {id}, label {label}. {num_years} years and {len(vars)} variables')
+                        values.extend(y_test)
+                        DetachEnsembleModel = DetachEnsemble(num_models=5, num_kernels=1000)
+                        DetachEnsembleModel.fit(X_train,y_train)
+                        y_pred = DetachEnsembleModel.predict(X_test)
+                        preds.extend(y_pred)
+                        
+            val_acc = accuracy_score(values, preds)
+            val_acc = round(val_acc * 100.0, 2)
+            print(f'Accuracy: {val_acc}%')
+            val_accuracies.append(val_acc)
+        plt.plot(range(2, 13, 2), val_accuracies, label=f'{len(vars)} input channels', color=colors[i])
+    plt.xlabel('Number of input years')
+    plt.ylabel('Test accuracy')
+    plt.ylim(0, 100)
+    plt.title('Detach Rocket')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    return
+
 if __name__ == "__main__":
-    monthly_vs_yearly_test()
-    #init_test()
+    # init_test()
+    # monthly_vs_yearly_test()
+    feat_imp()
