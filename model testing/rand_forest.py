@@ -6,6 +6,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.utils import shuffle
 
+plt.rcParams['font.family'] = 'Times New Roman'
+
 coral = (1,0.5,0.31,0.7)
 orange = (1, 0.44, 0, 1)
 thistle = (0.9,0.75,0.9,1)
