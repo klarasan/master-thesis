@@ -296,6 +296,80 @@ def dataset_test():
     plt.grid()
     plt.show()
     return
+
+def normalization():
+    vars = ['PDSI']
+    regular_df = pd.read_csv('data/avg_std_12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
+    glob_norm_df = pd.read_csv('data/globally_normalized_avg_std_12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
+    loc_norm_df = pd.read_csv('data/locally_normalized_avg_std_12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
+
+    val_accuracies_reg = []
+    val_accuracies_glob = []
+    val_accuracies_loc = []
+    for num_years in range(1, 13):
+        print(f'Starting training with {num_years} years of data')
+        cols = ['Ref_ID', 'label']
+        for var in vars:
+            for year in range(1-num_years, 1):
+                cols.append(f'{var}_year{year}_mean')
+        reg_x = regular_df[cols]
+        glob_x =  glob_norm_df[cols]
+        loc_x =  loc_norm_df[cols]
+        xs = [reg_x, glob_x, loc_x]
+
+        preds_reg = []
+        preds_glob = []
+        preds_loc = []
+        preds = [preds_reg, preds_glob, preds_loc]
+        values = []
+        for id in range(0, 153):
+            for i, x in enumerate(xs):
+                x_train = x[(x['Ref_ID'] != id)]
+                y_train = x_train['label']
+                x_train = x_train.drop(columns=['label', 'Ref_ID'], axis=1)
+
+                x_test = x[(x['Ref_ID'] == id)]
+                y_test = x_test['label']
+                x_test = x_test.drop(columns=['label', 'Ref_ID'], axis=1)
+
+                if y_test.shape[0] != 0:
+                    if i == 0:
+                        values.extend(y_test.values)
+                    x_train, y_train = shuffle(x_train, y_train, random_state=42)
+                    rf_model = RandomForestClassifier(n_estimators=12, random_state=42)
+                    rf_model.fit(x_train, y_train)
+                    
+                    pred = rf_model.predict(x_test)
+                    preds[i].extend(pred)
+
+        reg_val_acc = accuracy_score(values, preds[0])
+        reg_val_acc = round(reg_val_acc * 100.0, 2)
+        print(f'Accuracy regular data: {reg_val_acc}')
+        val_accuracies_reg.append(reg_val_acc)
+
+        glob_val_acc = accuracy_score(values, preds[1])
+        glob_val_acc = round(glob_val_acc * 100.0, 2)
+        print(f'Accuracy globally normalized data: {glob_val_acc}')
+        val_accuracies_glob.append(glob_val_acc)
+
+        loc_val_acc = accuracy_score(values, preds[2])
+        loc_val_acc = round(loc_val_acc * 100.0, 2)
+        print(f'Accuracy locally normalized data: {loc_val_acc}')
+        val_accuracies_loc.append(loc_val_acc)
+
+    plt.plot(range(1, 13), val_accuracies_reg, label='Unnormalized data', color=colors[1])
+    plt.plot(range(1, 13), val_accuracies_glob, label='Globally normalized data', color=colors[3])
+    plt.plot(range(1, 13), val_accuracies_loc, label='Locally normalized data', color=colors[4])
+
+    plt.xlabel('Number of input years')
+    plt.ylabel('Test accuracy')
+    plt.ylim(0, 100)
+    plt.title(f'Random forest {len(vars)} variables')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    return
     
 if __name__ == "__main__":
     # train, val, _ = train_val_test_split.datasplit80_10_10()
@@ -306,5 +380,6 @@ if __name__ == "__main__":
     # monthly_test(m_x_train, m_y_train, m_x_val, m_y_val)
     # leave_one_out()
     # kfold_test()
-    feat_imp()
+    # feat_imp()
     # dataset_test()
+    normalization()
