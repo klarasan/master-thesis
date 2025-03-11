@@ -268,11 +268,11 @@ def num_input_channels():
     return
 
 def channel_imp():
-    # vars14 = ['aet', 'def', 'pet', 'ppt', 'q', 'soil', 'srad', 'swe', 'tmax', 'tmin', 'vap', 'ws', 'vpd', 'PDSI']
+    vars14 = ['aet', 'def', 'pet', 'ppt', 'q', 'soil', 'srad', 'swe', 'tmax', 'tmin', 'vap', 'ws', 'vpd', 'PDSI']
     # vars10 = ['aet', 'def', 'ppt', 'pet', 'soil', 'srad', 'tmax', 'vap', 'vpd', 'PDSI']
     # vars8 = ['tmax', 'vpd', 'def', 'soil', 'ppt', 'PDSI', 'srad', 'q']
     # vars6 = ['tmax', 'vpd', 'def', 'srad', 'ppt', 'PDSI']
-    vars3 = ['srad', 'ppt', 'PDSI']
+    # vars3 = ['srad', 'ppt', 'PDSI']
 
     colors = ["orange", "coral", "thistle", "plum"]
     custom_cmap = LinearSegmentedColormap.from_list("custom_cmap", colors, N=100)
@@ -282,15 +282,15 @@ def channel_imp():
     months = range(1, 13)
 
     feature_importance = pd.DataFrame()
-    feature_importance['variable'] = vars3
-    feature_importance['importance'] = np.zeros(3)
+    feature_importance['variable'] = vars14
+    feature_importance['importance'] = np.zeros(14)
 
     df = pd.read_csv('data/12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
     
-    X = np.zeros((len(df), len(vars3), len(years) * len(months)))  
+    X = np.zeros((len(df), len(vars14), len(years) * len(months)))  
 
     # Populate X with values from df
-    for i, var in enumerate(vars3):
+    for i, var in enumerate(vars14):
         for j, year in enumerate(years):
             for k, month in enumerate(months):
                 col_name = f"{var}_year{year}_month{month}"
@@ -299,19 +299,19 @@ def channel_imp():
 
     labels = df["label"].values 
     for _ in range(0, 15):
-        DetachEnsembleModel = DetachEnsemble(num_models=1, num_kernels=2000)
+        DetachEnsembleModel = DetachEnsemble(num_models=25)
         DetachEnsembleModel.fit(X, labels)
 
         channel_relevance = DetachEnsembleModel.estimate_channel_relevance()
         feature_importance['importance'] += channel_relevance
     feature_importance = feature_importance.sort_values(by='importance', ascending=False)
 
-    norm = np.linspace(0, 1, len(vars3))
+    norm = np.linspace(0, 1, len(vars14))
     bar_colors = custom_cmap(norm)
 
     plt.figure(figsize=(8,3.5))
     plt.bar(feature_importance['variable'], feature_importance['importance'], color=bar_colors, zorder=2)
-    plt.title(f'Channel relevance estimation, {len(vars3)} channels')
+    plt.title(f'Channel relevance estimation, {len(vars14)} channels')
     plt.grid(True, linestyle='-', alpha=0.5, zorder=1)
     plt.xlabel('Input channels')
     plt.ylabel('Relevance Estimation (arb. unit)')
@@ -725,8 +725,8 @@ if __name__ == "__main__":
     # init_test()
     # monthly_vs_yearly_test()
     # num_input_channels()
-    # channel_imp()
+    channel_imp()
     # hyper_param()
     # normalization()
     # pruning()
-    num_input_channels_fine()
+    #num_input_channels_fine()

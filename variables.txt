@@ -1,0 +1,14 @@
+PDSI
+srad
+ppt
+tmax
+def
+vpd
+vap
+pet
+aet
+q
+soil
+tmin
+ws
+swe
