@@ -5,7 +5,7 @@ from matplotlib.patches import Patch
 
 plt.rcParams['font.family'] = 'Times New Roman'
 
-model = 'gru'
+model = 'rf'
 results = pd.read_csv(f"results_vars/{model}_num_vars.csv").values * 100
 scores_5 = results[:14]
 scores_12 = results[14:]
@@ -18,8 +18,15 @@ medians_12 = [np.median(run) for run in scores_12]
 means_12 = [np.mean(run) for run in scores_12]
 bests_12 = [np.max(run) for run in scores_12]
 
-print(f'5 years: \nMedians: {medians_5} \nMeans: {means_5} \nBest: {bests_5}')
-print(f'12 years: \nMedians: {medians_12} \nMeans: {means_12} \nBest: {bests_12}')
+opt_median_number_5years = np.argmax(medians_5)
+opt_mean_number_5years = np.argmax(means_5)
+print(f'Best median accuracy for 5 years: {medians_5[opt_median_number_5years]}, achieved with {opt_median_number_5years+1} channels')
+print(f'Best mean accuracy for 5 years: {means_5[opt_mean_number_5years]}, achieved with {opt_mean_number_5years+1} channels')
+
+opt_median_number_12years = np.argmax(medians_12)
+opt_mean_number_12years = np.argmax(means_12)
+print(f'Best median accuracy for 12 years: {medians_12[opt_median_number_12years]}, achieved with {opt_median_number_12years+1} channels')
+print(f'Best mean accuracy for 12 years: {means_12[opt_mean_number_12years]}, achieved with {opt_mean_number_12years+1} channels')
 
 x_values = np.arange(1, 15)
 

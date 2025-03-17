@@ -59,7 +59,7 @@ for n, num_years in enumerate(timeseries_length):
 
             values = y_test
             X_train, y_train = shuffle(X_train, y_train, random_state=42)
-            rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+            rf_model = RandomForestClassifier(n_estimators=300, random_state=42)
             rf_model.fit(X_train, y_train)
             
             y_pred = rf_model.predict(X_test)
@@ -71,4 +71,4 @@ for n, num_years in enumerate(timeseries_length):
             accuracies[v + n*14][fold] = acc
         print(accuracies[v + n*14])
 results = pd.DataFrame(accuracies, columns=['Fold 1', 'Fold 2', 'Fold 3', 'Fold 4', 'Fold 5', 'Fold 6', 'Fold 7', 'Fold 8'])
-results.to_csv(f'rf_num_vars100.csv', index=False)
+results.to_csv(f'rf_num_vars.csv', index=False)
