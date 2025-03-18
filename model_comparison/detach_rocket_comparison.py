@@ -6,7 +6,7 @@ from detach_rocket.detach_classes import DetachEnsemble
 from sklearn.utils import shuffle
 
 def test():
-    vars = ['aet', 'def', 'ppt', 'q', 'soil', 'srad', 'tmax', 'vap', 'vpd', 'PDSI']
+    vars = ['PDSI', 'srad', 'ppt', 'tmax']
     df = pd.read_csv('data/12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
     num_years = 12
 
@@ -36,7 +36,6 @@ def test():
 
             X_train_list, X_test_list, y_train_list, y_test_list = [], [], [], []
 
-            # Boolean masks for selecting train/test samples
             train_mask = (ref_ids < low_id) | (ref_ids > high_id)
             test_mask = (ref_ids >= low_id) & (ref_ids <= high_id)
 
@@ -46,7 +45,6 @@ def test():
             X_test_list.append(X[test_mask])
             y_test_list.append(labels[test_mask])
 
-            # Convert lists to NumPy arrays
             X_train = np.concatenate(X_train_list, axis=0)
             y_train = np.concatenate(y_train_list, axis=0)
 

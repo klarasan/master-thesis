@@ -9,7 +9,6 @@ model = 'rf'
 results_best_5years = pd.read_csv(f"results_vars/{model}_vars_comp_best_5years.csv").values * 100
 results_mid_5years = pd.read_csv(f"results_vars/{model}_vars_comp_mid_5years.csv").values * 100
 results_worst_5years = pd.read_csv(f"results_vars/{model}_vars_comp_worst_5years.csv").values * 100
-
 results_best_12years = pd.read_csv(f"results_vars/{model}_vars_comp_best_12years.csv").values * 100
 results_mid_12years = pd.read_csv(f"results_vars/{model}_vars_comp_mid_12years.csv").values * 100
 results_worst_12years = pd.read_csv(f"results_vars/{model}_vars_comp_worst_12years.csv").values * 100

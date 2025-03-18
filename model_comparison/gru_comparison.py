@@ -8,8 +8,8 @@ from keras import layers
 from sklearn.utils import shuffle
 
 def test():
-    vars = ['tmax', 'def', 'srad', 'ppt', 'PDSI']
-    df = pd.read_csv('data/12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
+    vars = ['PDSI', 'srad', 'ppt']
+    df = pd.read_csv('data/globally_normalized_12_years_bilinear_interp_w_outliers.csv', on_bad_lines='skip')
     num_years = 12
 
     years = range(1-num_years, 1)
@@ -39,7 +39,6 @@ def test():
 
             X_train_list, X_test_list, y_train_list, y_test_list = [], [], [], []
 
-            # Boolean masks for selecting train/test samples
             train_mask = (ref_ids < low_id) | (ref_ids > high_id)
             test_mask = (ref_ids >= low_id) & (ref_ids <= high_id)
 
@@ -49,7 +48,6 @@ def test():
             X_test_list.append(X[test_mask])
             y_test_list.append(labels[test_mask])
 
-            # Convert lists to NumPy arrays
             X_train = np.concatenate(X_train_list, axis=0)
             y_train = np.concatenate(y_train_list, axis=0)
 
@@ -57,13 +55,14 @@ def test():
             y_test = np.concatenate(y_test_list, axis=0)
 
             values = y_test
+            X_train, y_train = shuffle(X_train, y_train, random_state=42)
             model = keras.Sequential([
-            layers.GRU(64, return_sequences=True, input_shape=(num_years * 12, len(vars))),
-            layers.Dropout(0.2),  
-            layers.GRU(32),
-            layers.Dropout(0.2),
-            layers.Dense(16, activation="relu"), 
-            layers.Dense(1, activation="sigmoid") 
+            layers.GRU(128, return_sequences=True, input_shape=(num_years*12, len(vars))),
+            layers.Dropout(0.3),
+            layers.GRU(64),
+            layers.Dropout(0.3),
+            layers.Dense(32, activation="relu"),
+            layers.Dense(1, activation="sigmoid")  
             ])
             model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
             _ = model.fit(X_train, y_train, epochs=50, batch_size=32, verbose=0)
@@ -77,7 +76,7 @@ def test():
             accuracies[run][fold] = acc
 
     results = pd.DataFrame(accuracies, columns=['Fold 1', 'Fold 2', 'Fold 3', 'Fold 4', 'Fold 5', 'Fold 6', 'Fold 7', 'Fold 8'])
-    results.to_csv('GRU_model_comparisonS5vars_notnorm.csv', index=False)
+    results.to_csv('gru_bigger_net.csv', index=False)
 
     return
 

@@ -66,13 +66,14 @@ for n, num_years in enumerate(timeseries_length):
             y_test = np.concatenate(y_test_list, axis=0)
 
             values = y_test
+            X_train, y_train = shuffle(X_train, y_train, random_state=42)
             model = keras.Sequential([
-            layers.GRU(64, return_sequences=True, input_shape=(num_years * 12, len(vars))),
-            layers.Dropout(0.2),  
-            layers.GRU(32),
-            layers.Dropout(0.2),
-            layers.Dense(16, activation="relu"), 
-            layers.Dense(1, activation="sigmoid") 
+            layers.GRU(128, return_sequences=True, input_shape=(num_years*12, len(vars))),
+            layers.Dropout(0.3),
+            layers.GRU(64),
+            layers.Dropout(0.3),
+            layers.Dense(32, activation="relu"),
+            layers.Dense(1, activation="sigmoid")  
             ])
             model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
             X_train, y_train = shuffle(X_train, y_train, random_state=42)
@@ -87,4 +88,4 @@ for n, num_years in enumerate(timeseries_length):
             accuracies[v + n*14][fold] = acc
         print(accuracies[v + n*14])
 results = pd.DataFrame(accuracies, columns=['Fold 1', 'Fold 2', 'Fold 3', 'Fold 4', 'Fold 5', 'Fold 6', 'Fold 7', 'Fold 8'])
-results.to_csv(f'gru_num_vars_normalized.csv', index=False)
+results.to_csv(f'gru_num_vars_normalized_bigger_net.csv', index=False)

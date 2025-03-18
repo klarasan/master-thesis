@@ -5,8 +5,8 @@ from matplotlib.patches import Patch
 
 plt.rcParams['font.family'] = 'Times New Roman'
 
-model = 'rf'
-results = pd.read_csv(f"results_vars/{model}_num_vars.csv").values * 100
+model = 'gru'
+results = pd.read_csv(f"results_vars/{model}_num_vars_normalized_bigger_net.csv").values * 100
 scores_5 = results[:14]
 scores_12 = results[14:]
 
