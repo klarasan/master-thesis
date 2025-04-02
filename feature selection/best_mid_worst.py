@@ -49,7 +49,7 @@ lighter_group_colors = lighter_shades * 6
 x_positions = np.array([0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14, 16, 17, 18, 20, 21, 22])
 bar_width = 0.75
 
-fig, ax = plt.subplots(figsize=(18, 6))
+fig, ax = plt.subplots(figsize=(11, 5))
 
 bars1 = ax.bar(x_positions, medians, width=bar_width, color=group_colors, label="Median Accuracy")
 bars2 = ax.bar(x_positions, best_diff, width=bar_width, bottom=medians, color=lighter_group_colors, alpha=0.8, label="Best Score - Median")
@@ -76,8 +76,8 @@ ax.set_ylabel("Accuracy (%)", fontsize=14)
 ax.set_ylim(0, 110)
 
 for bar1, bar2, median, best in zip(bars1, bars2, medians, bests):
-    ax.text(bar1.get_x() + bar1.get_width() / 2, bar1.get_height() / 2, f"{median:.1f}%", ha='center', va='center', color='white', fontsize=10)
-    ax.text(bar2.get_x() + bar2.get_width() / 2, bar1.get_height() + bar2.get_height() - 2, f"{best:.1f}%", ha='center', va='bottom', color='black', fontsize=10)
+    ax.text(bar1.get_x() + bar1.get_width() / 2, bar1.get_height() / 2, f"{median:.1f}%", ha='center', va='center', color='black', fontsize=11)
+    ax.text(bar2.get_x() + bar2.get_width() / 2, bar1.get_height() + bar2.get_height() - 2, f"{best:.1f}%", ha='center', va='bottom', color='black', fontsize=11)
 
 fig.tight_layout()
 plt.show()
